@@ -3,584 +3,365 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#6366f1">
 <title>iQR - Gerador de QR Code</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  
-  :root {
-    --primary: #6366f1;
-    --primary-dark: #4f46e5;
-    --secondary: #ec4899;
-    --bg: #f8fafc;
-    --card: #ffffff;
-    --text: #1e293b;
-    --text-light: #64748b;
-    --border: #e2e8f0;
-    --success: #10b981;
-  }
-  
+  * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
-    color: var(--text);
-    padding: 20px 16px;
-    padding-bottom: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    display: flex;
+    justify-content: center;
+    padding: 20px 10px;
   }
-  
-  .container {
-    max-width: 480px;
-    margin: 0 auto;
+  .app {
+    width: 100%;
+    max-width: 420px;
+    background: rgba(255,255,255,0.97);
+    border-radius: 28px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
   }
-  
   .header {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    padding: 24px 20px;
     text-align: center;
-    margin-bottom: 24px;
     color: white;
+    position: relative;
   }
-  
   .logo {
-    font-size: 48px;
+    font-size: 42px;
     font-weight: 800;
-    letter-spacing: -2px;
-    text-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
-    -webkit-background-clip: text;    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    letter-spacing: -1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
   }
-  
-  .logo span {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6366f1;
+    font-size: 26px;    font-weight: 900;
   }
-  
-  .tagline {
-    font-size: 14px;
+  .subtitle {
+    font-size: 13px;
     opacity: 0.9;
     margin-top: 4px;
     font-weight: 500;
   }
-  
-  .card {
-    background: var(--card);
-    border-radius: 24px;
-    padding: 24px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-    margin-bottom: 16px;
-  }
-  
-  .input-group {
-    margin-bottom: 16px;
-  }
-  
-  label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-light);
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  
-  .input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-  
-  .input-icon {
-    position: absolute;
-    left: 16px;
-    color: var(--text-light);    font-size: 18px;
-  }
-  
-  input[type="text"], input[type="url"] {
-    width: 100%;
-    padding: 16px 16px 16px 48px;
-    border: 2px solid var(--border);
-    border-radius: 14px;
-    font-size: 15px;
-    transition: all 0.3s;
-    background: var(--bg);
-    color: var(--text);
-  }
-  
-  input:focus {
-    outline: none;
-    border-color: var(--primary);
-    background: white;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-  }
-  
-  .options {
+  .tabs {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 16px;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 16px 12px 8px;
+    gap: 6px;
+    background: #f8f9ff;
   }
-  
-  .option-item {
+  .tab {
+    padding: 10px 4px;
+    border: none;
+    background: transparent;
+    border-radius: 14px;
+    cursor: pointer;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-  }
-  
-  .option-item label {
-    margin: 0;
+    align-items: center;
+    gap: 4px;
     font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    transition: all 0.25s;
   }
-  
-  .color-picker {
+  .tab-icon {
+    font-size: 22px;
+    width: 38px; height: 38px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    background: var(--bg);
+    justify-content: center;
+    border-radius: 10px;
+    background: #eef0ff;
   }
-  
-  input[type="color"] {    width: 28px;
-    height: 28px;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    background: none;
-    padding: 0;
+  .tab.active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(99,102,241,0.4);
   }
-  
-  input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-  input[type="color"]::-webkit-color-swatch { border: 2px solid white; border-radius: 50%; }
-  
-  .color-picker span {
-    font-size: 12px;
-    color: var(--text-light);
-    font-weight: 500;
+  .tab.active .tab-icon { background: rgba(255,255,255,0.25); color: white; }
+  .content { padding: 20px; }
+  .form-group { margin-bottom: 14px; }
+  label {
+    display: block;    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
   }
-  
-  select {
+  input, textarea, select {
     width: 100%;
-    padding: 12px;
-    border: 2px solid var(--border);
+    padding: 13px 14px;
+    border: 2px solid #e5e7eb;
     border-radius: 12px;
-    font-size: 14px;
-    background: var(--bg);
-    color: var(--text);
-    cursor: pointer;
+    font-size: 15px;
+    outline: none;
+    transition: border 0.2s;
+    background: #fafbff;
   }
-  
-  .btn {
+  input:focus, textarea:focus, select:focus {
+    border-color: #6366f1;
+    background: white;
+  }
+  textarea { resize: none; min-height: 70px; font-family: inherit; }
+  .btn-generate {
     width: 100%;
-    padding: 16px;
+    padding: 15px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
     border: none;
     border-radius: 14px;
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    margin-top: 8px;
+    box-shadow: 0 8px 20px rgba(99,102,241,0.35);
+    transition: transform 0.15s;
   }
-  
-  .btn-primary {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: white;
-    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
-  }
-    .btn-primary:active {
-    transform: scale(0.98);
-    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4);
-  }
-  
+  .btn-generate:active { transform: scale(0.97); }
   .qr-container {
+    margin-top: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
     display: none;
-    text-align: center;
-    padding: 24px;
-    background: white;
-    border-radius: 24px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-    margin-bottom: 16px;
-    animation: slideUp 0.4s ease;
   }
-  
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  .qr-container.active { display: block; }
-  
-  .qr-wrapper {
-    display: inline-block;
-    padding: 16px;
-    background: white;
-    border-radius: 16px;
-    border: 3px solid var(--bg);
-    margin-bottom: 16px;
-  }
-  
+  .qr-container.show { display: block; animation: fadeIn 0.4s; }
+  @keyframes fadeIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
   #qrcode {
-    display: flex;
-    justify-content: center;
-  }
-  
-  #qrcode img, #qrcode canvas {
-    border-radius: 8px;
-  }
-  
-  .qr-url {
-    font-size: 12px;
-    color: var(--text-light);
-    word-break: break-all;
-    margin-bottom: 16px;
-    padding: 10px;
-    background: var(--bg);
-    border-radius: 10px;
-    max-height: 60px;    overflow-y: auto;
-  }
-  
-  .actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  
-  .btn-action {
+    display: inline-block;
     padding: 12px;
-    border: 2px solid var(--border);
-    background: white;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    transition: all 0.2s;
+    background: white;    border-radius: 12px;
   }
-  
-  .btn-action:active {
-    transform: scale(0.96);
-    background: var(--bg);
-  }
-  
-  .btn-action.success {
-    background: var(--success);
+  #qrcode img, #qrcode canvas { border-radius: 8px; display: block; }
+  .btn-download {
+    margin-top: 14px;
+    padding: 11px 24px;
+    background: #10b981;
     color: white;
-    border-color: var(--success);
-  }
-  
-  .history {
-    background: var(--card);
-    border-radius: 24px;
-    padding: 20px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-  }
-  
-  .history-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;    justify-content: space-between;
-  }
-  
-  .clear-btn {
-    font-size: 11px;
-    color: var(--secondary);
-    background: none;
     border: none;
-    cursor: pointer;
-    font-weight: 600;
-  }
-  
-  .history-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px;
-    background: var(--bg);
-    border-radius: 12px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  
-  .history-item:active { transform: scale(0.98); }
-  
-  .history-item:last-child { margin-bottom: 0; }
-  
-  .history-icon {
-    width: 36px;
-    height: 36px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 16px;
-    flex-shrink: 0;
-  }
-  
-  .history-text {
-    flex: 1;
-    font-size: 13px;
-    color: var(--text);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-    .empty-history {
-    text-align: center;
-    padding: 20px;
-    color: var(--text-light);
-    font-size: 13px;
-  }
-  
-  .toast {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--text);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 50px;
     font-size: 14px;
-    font-weight: 500;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    transition: transform 0.3s;
-    z-index: 1000;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
   }
-  
-  .toast.show { transform: translateX(-50%) translateY(0); }
-  
+  .btn-download:active { background: #059669; }
   .footer {
     text-align: center;
-    color: rgba(255,255,255,0.8);
-    font-size: 12px;
-    margin-top: 24px;
+    padding: 14px;
+    font-size: 11px;
+    color: #9ca3af;
+    border-top: 1px solid #f3f4f6;
   }
+  .hidden { display: none !important; }
 </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="logo">i<span>QR</span></div>
-      <div class="tagline">⚡ QR Codes em segundos</div>
-    </div>
-    
-    <div class="card">
-      <div class="input-group">
-        <label>🔗 Cole seu link aqui</label>
-        <div class="input-wrapper">
-          <span class="input-icon">🌐</span>
-          <input type="url" id="urlInput" placeholder="https://exemplo.com" autocomplete="off">
-        </div>
+<div class="app">
+  <div class="header">
+    <div class="logo"><div class="logo-icon">Q</div> iQR</div>
+    <div class="subtitle">Crie QR Codes em segundos ⚡</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-type="link">
+      <div class="tab-icon">🔗</div>Link
+    </button>
+    <button class="tab" data-type="whatsapp">
+      <div class="tab-icon">💬</div>WhatsApp
+    </button>
+    <button class="tab" data-type="wifi">
+      <div class="tab-icon">📶</div>Wi-Fi
+    </button>
+    <button class="tab" data-type="pix">
+      <div class="tab-icon">💰</div>Pix
+    </button>
+  </div>
+
+  <div class="content">
+    <!-- LINK -->    <div class="form-section" id="form-link">
+      <div class="form-group">
+        <label>URL do site</label>
+        <input type="url" id="linkUrl" placeholder="https://exemplo.com">
       </div>
-      
-      <div class="options">        <div class="option-item">
-          <label>Cor do QR</label>
-          <div class="color-picker">
-            <input type="color" id="qrColor" value="#6366f1">
-            <span id="colorLabel">#6366f1</span>
-          </div>
-        </div>
-        <div class="option-item">
-          <label>Tamanho</label>
-          <select id="qrSize">
-            <option value="200">Pequeno</option>
-            <option value="280" selected>Médio</option>
-            <option value="360">Grande</option>
-          </select>
-        </div>
-      </div>
-      
-      <button class="btn btn-primary" onclick="generateQR()">
-        ⚡ Gerar QR Code
-      </button>
     </div>
-    
+
+    <!-- WHATSAPP -->
+    <div class="form-section hidden" id="form-whatsapp">
+      <div class="form-group">
+        <label>Número (com DDI + DDD)</label>
+        <input type="tel" id="wppNumber" placeholder="5511999998888">
+      </div>
+      <div class="form-group">
+        <label>Mensagem (opcional)</label>
+        <textarea id="wppMsg" placeholder="Olá! Vi seu QR Code..."></textarea>
+      </div>
+    </div>
+
+    <!-- WI-FI -->
+    <div class="form-section hidden" id="form-wifi">
+      <div class="form-group">
+        <label>Nome da rede (SSID)</label>
+        <input type="text" id="wifiSsid" placeholder="MinhaRede">
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="text" id="wifiPass" placeholder="senha123">
+      </div>
+      <div class="form-group">
+        <label>Tipo de segurança</label>
+        <select id="wifiType">
+          <option value="WPA">WPA/WPA2</option>
+          <option value="WEP">WEP</option>
+          <option value="nopass">Sem senha</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- PIX -->
+    <div class="form-section hidden" id="form-pix">
+      <div class="form-group">
+        <label>Chave Pix</label>
+        <input type="text" id="pixKey" placeholder="CPF, e-mail, telefone ou aleatória">
+      </div>
+      <div class="form-group">
+        <label>Nome do favorecido</label>
+        <input type="text" id="pixName" placeholder="JOAO SILVA" maxlength="25">
+      </div>
+      <div class="form-group">        <label>Cidade</label>
+        <input type="text" id="pixCity" placeholder="SAO PAULO" maxlength="15">
+      </div>
+      <div class="form-group">
+        <label>Valor (opcional)</label>
+        <input type="number" id="pixValue" step="0.01" placeholder="0.00">
+      </div>
+    </div>
+
+    <button class="btn-generate" onclick="generateQR()">⚡ Gerar QR Code</button>
+
     <div class="qr-container" id="qrContainer">
-      <div class="qr-wrapper">
-        <div id="qrcode"></div>
-      </div>
-      <div class="qr-url" id="qrUrl"></div>
-      <div class="actions">
-        <button class="btn-action" onclick="downloadQR()">
-          📥 Baixar PNG
-        </button>
-        <button class="btn-action" onclick="copyLink()">
-          📋 Copiar Link
-        </button>
-      </div>
+      <div id="qrcode"></div>
+      <button class="btn-download" onclick="downloadQR()">⬇️ Baixar QR Code</button>
     </div>
-    
-    <div class="history">
-      <div class="history-title">
-        <span>📜 Histórico Recente</span>
-        <button class="clear-btn" onclick="clearHistory()">Limpar</button>
-      </div>
-      <div id="historyList">
-        <div class="empty-history">Nenhum QR Code gerado ainda</div>
-      </div>
-    </div>
-    
-    <div class="footer">
-      iQR © 2026 • Feito com 💜
-    </div>  </div>
-  
-  <div class="toast" id="toast"></div>
+  </div>
+
+  <div class="footer">iQR © 2026 • Gerador rápido e gratuito</div>
+</div>
 
 <script>
+  // Troca de abas
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.form-section').forEach(f => f.classList.add('hidden'));
+      tab.classList.add('active');
+      document.getElementById('form-' + tab.dataset.type).classList.remove('hidden');
+      document.getElementById('qrContainer').classList.remove('show');
+    });
+  });
+
   let qrInstance = null;
-  let currentUrl = '';
-  
-  const urlInput = document.getElementById('urlInput');
-  const qrColor = document.getElementById('qrColor');
-  const colorLabel = document.getElementById('colorLabel');
-  const qrSize = document.getElementById('qrSize');
-  
-  qrColor.addEventListener('input', (e) => {
-    colorLabel.textContent = e.target.value;
-  });
-  
-  urlInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') generateQR();
-  });
-  
-  function showToast(msg) {
-    const toast = document.getElementById('toast');
-    toast.textContent = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2500);
-  }
-  
-  function normalizeUrl(url) {
-    url = url.trim();
-    if (!url) return '';
-    if (!/^https?:\/\//i.test(url)) {
-      url = 'https://' + url;
-    }
-    return url;
-  }
-  
+
   function generateQR() {
-    const url = normalizeUrl(urlInput.value);
-    if (!url || url === 'https://') {
-      showToast('⚠️ Digite um link válido');
-      return;
-    }
-    
-    currentUrl = url;
-    const size = parseInt(qrSize.value);
-    const color = qrColor.value;
-    const qrDiv = document.getElementById('qrcode');
-    qrDiv.innerHTML = '';
-        qrInstance = new QRCode(qrDiv, {
-      text: url,
-      width: size,
-      height: size,
-      colorDark: color,
-      colorLight: '#ffffff',
+    const type = document.querySelector('.tab.active').dataset.type;
+    let data = '';
+
+    try {
+      if (type === 'link') {
+        data = document.getElementById('linkUrl').value.trim();
+        if (!data) return alert('Digite uma URL válida.');
+        if (!/^https?:\/\//i.test(data)) data = 'https://' + data;
+      }
+      else if (type === 'whatsapp') {
+        const num = document.getElementById('wppNumber').value.replace(/\D/g,'');
+        const msg = document.getElementById('wppMsg').value.trim();
+        if (!num) return alert('Digite o número.');
+        data = 'https://wa.me/' + num + (msg ? '?text=' + encodeURIComponent(msg) : '');
+      }      else if (type === 'wifi') {
+        const ssid = document.getElementById('wifiSsid').value.trim();
+        const pass = document.getElementById('wifiPass').value;
+        const t = document.getElementById('wifiType').value;
+        if (!ssid) return alert('Digite o nome da rede.');
+        data = `WIFI:T:${t};S:${ssid};P:${pass};;`;
+      }
+      else if (type === 'pix') {
+        const key = document.getElementById('pixKey').value.trim();
+        const name = document.getElementById('pixName').value.trim().toUpperCase();
+        const city = document.getElementById('pixCity').value.trim().toUpperCase();
+        const val = document.getElementById('pixValue').value;
+        if (!key || !name || !city) return alert('Preencha chave, nome e cidade.');
+        data = buildPixPayload(key, name, city, val);
+      }
+    } catch(e) { return alert('Erro: ' + e.message); }
+
+    document.getElementById('qrcode').innerHTML = '';
+    qrInstance = new QRCode(document.getElementById('qrcode'), {
+      text: data,
+      width: 240,
+      height: 240,
+      colorDark: "#1a1a2e",
+      colorLight: "#ffffff",
       correctLevel: QRCode.CorrectLevel.H
     });
-    
-    document.getElementById('qrUrl').textContent = url;
-    document.getElementById('qrContainer').classList.add('active');
-    
-    saveToHistory(url);
-    showToast('✅ QR Code gerado!');
-    
-    setTimeout(() => {
-      document.getElementById('qrContainer').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 100);
+    document.getElementById('qrContainer').classList.add('show');
   }
-  
+
+  // Monta payload Pix EMV completo (padrão BR Code)
+  function buildPixPayload(key, name, city, value) {
+    const t = (id, val) => {
+      const v = String(val);
+      return id.toString().padStart(2,'0') + v.length.toString().padStart(2,'0') + v;
+    };
+    // Merchant Account Information (ID 26)
+    const gui = t(0, 'br.gov.bcb.pix');
+    const acc = t(26, gui + t(1, key));
+    let payload = t(0, '01') + acc + t(52, '0000') + t(53, '986');
+    if (value && parseFloat(value) > 0) {
+      payload += t(54, parseFloat(value).toFixed(2));
+    }
+    payload += t(58, 'BR') + t(59, name.substring(0,25)) + t(60, city.substring(0,15));
+    payload += t(62, t(5, '***'));
+    payload += t(63, '0000'); // CRC reservado
+    // Calcula CRC16-CCITT
+    const crc = crc16(payload);
+    return payload + crc;
+  }
+  function crc16(str) {
+    let crc = 0xFFFF;
+    for (let i = 0; i < str.length; i++) {
+      crc ^= str.charCodeAt(i) << 8;
+      for (let j = 0; j < 8; j++) {
+        crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+        crc &= 0xFFFF;
+      }
+    }
+    return crc.toString(16).toUpperCase().padStart(4,'0');
+  }
+
   function downloadQR() {
-    const canvas = document.querySelector('#qrcode canvas');
-    const img = document.querySelector('#qrcode img');
-    let dataUrl;
-    
-    if (canvas) {
-      dataUrl = canvas.toDataURL('image/png');
-    } else if (img) {
-      dataUrl = img.src;
-    } else {
-      showToast('❌ Erro ao baixar');
-      return;
-    }
-    
-    const link = document.createElement('a');
-    link.download = 'iqr-' + Date.now() + '.png';
-    link.href = dataUrl;
-    link.click();
-    showToast('📥 Download iniciado!');
+    const img = document.querySelector('#qrcode img') || document.querySelector('#qrcode canvas');
+    if (!img) return;
+    const src = img.src || img.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = src;
+    a.download = 'iqr-' + Date.now() + '.png';
+    a.click();
   }
-  
-  function copyLink() {
-    if (!currentUrl) return;
-    navigator.clipboard.writeText(currentUrl).then(() => {
-      showToast('📋 Link copiado!');
-    }).catch(() => {
-      const ta = document.createElement('textarea');
-      ta.value = currentUrl;
-      document.body.appendChild(ta);
-      ta.select();      document.execCommand('copy');
-      document.body.removeChild(ta);
-      showToast('📋 Link copiado!');
-    });
-  }
-  
-  function saveToHistory(url) {
-    let history = JSON.parse(localStorage.getItem('iqr_history') || '[]');
-    history = history.filter(h => h !== url);
-    history.unshift(url);
-    history = history.slice(0, 5);
-    localStorage.setItem('iqr_history', JSON.stringify(history));
-    renderHistory();
-  }
-  
-  function renderHistory() {
-    const list = document.getElementById('historyList');
-    const history = JSON.parse(localStorage.getItem('iqr_history') || '[]');
-    
-    if (history.length === 0) {
-      list.innerHTML = '<div class="empty-history">Nenhum QR Code gerado ainda</div>';
-      return;
-    }
-    
-    list.innerHTML = history.map(url => `
-      <div class="history-item" onclick="loadFromHistory('${url.replace(/'/g, "\\'")}')">
-        <div class="history-icon">📱</div>
-        <div class="history-text">${url}</div>
-      </div>
-    `).join('');
-  }
-  
-  function loadFromHistory(url) {
-    urlInput.value = url;
-    generateQR();
-  }
-  
-  function clearHistory() {
-    localStorage.removeItem('iqr_history');
-    renderHistory();
-    showToast('🗑️ Histórico limpo');
-  }
-  
-  renderHistory();
 </script>
 </body>
 </html>
