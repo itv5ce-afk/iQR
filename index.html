@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/png" href="favicon.png"><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>">
+    <title>Lanny Stilit | Catálogo Digital</title>
+    <!-- Google Fonts para sofisticação e Ícones -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    
+    <style>
+        /* ========== ESTILOS (MANTIDOS) ========== */
+        :root {
+            --primary: #2c2c2c; 
+            --accent: #d4af37;  
+            --bg-light: #fff9f9; 
+            --card-bg: #ffffff;
+            --text-muted: #757575;
+            --whatsapp-color: #25d366;
+            --danger-color: #dc3545;
+            --edit-color: #0d6efd;
+            --success-color: #198754;
+            --gold-light: #fdf8e7;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { background-color: #f0f0f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .mobile-container { width: 100%; max-width: 450px; height: 850px; background: var(--bg-light); box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 30px; overflow: hidden; position: relative; display: flex; flex-direction: column; border: 8px solid #222; }
+        .screen { width: 100%; height: 100%; overflow-y: auto; display: none; flex-direction: column; }
+        .screen.active { display: flex; }
+        header { text-align: center; padding: 40px 20px 20px 20px; background: #ffffff; border-bottom: 1px solid rgba(212, 175, 55, 0.2); }
+        header h1 { font-family: 'Cormorant Garamond', serif; font-size: 2.3rem; font-weight: 400; letter-spacing: 2px; color: var(--primary); margin-bottom: 5px; }
+        header p { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 3px; color: var(--accent); font-weight: 500; }
+        .fixed-buttons-container { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; z-index: 30; }
+        .settings-fixed-btn { background: var(--primary); color: white; width: 54px; height: 54px; border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; border: none; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.25); transition: all 0.2s ease; }
+        .notification-bubble { background: var(--accent); color: #fff; padding: 8px 16px; border-radius: 40px; font-size: 0.7rem; font-weight: 700; box-shadow: 0 3px 12px rgba(212, 175, 55, 0.5); cursor: pointer; display: flex; align-items: center; gap: 8px; animation: pulseNotify 1.2s infinite alternate; }
+        @keyframes pulseNotify { from { transform: scale(1); opacity: 0.9; } to { transform: scale(1.05); opacity: 1; } }
+        .booking-fixed-btn { position: fixed; bottom: 24px; left: 24px; background: var(--accent); color: var(--primary); border: none; padding: 12px 22px; border-radius: 40px; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; box-shadow: 0 6px 18px rgba(0,0,0,0.2); cursor: pointer; z-index: 30; display: flex; align-items: center; gap: 8px; }
+        .hidden-fixed { display: none !important; }
+        .tabs { display: flex; justify-content: space-around; background: #fff; position: sticky; top: 0; z-index: 5; border-bottom: 1px solid #eee; }
+        .tab-btn { background: none; border: none; padding: 15px 20px; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; flex: 1; }
+        .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--accent); font-weight: 500; }
+        .catalog-content { padding: 20px; flex: 1; }
+        .catalog-section { display: none; }
+        .catalog-section.active { display: block; }
+        .section-title { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; text-align: center; margin-bottom: 25px; }        .grid { display: grid; grid-template-columns: 1fr; gap: 25px; }
+        .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02); }
+        .card img { width: 100%; height: 260px; object-fit: cover; cursor: pointer; }
+        .card-info { padding: 15px; text-align: center; }
+        .card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 600; }
+        .card-price { font-size: 0.95rem; color: var(--accent); font-weight: 500; }
+        .panel-header { padding: 20px; background: #fff; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; }
+        .back-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
+        .panel-body { padding: 20px; flex: 1; overflow-y: auto; }
+        .horizontal-tabs { display: flex; gap: 5px; margin-bottom: 20px; background: #eee; padding: 4px; border-radius: 8px; flex-wrap: wrap; }
+        .panel-tab-btn { flex: 1; background: none; border: none; padding: 10px 3px; font-size: 0.75rem; font-weight: 500; color: var(--text-muted); cursor: pointer; border-radius: 6px; text-transform: uppercase; }
+        .panel-tab-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .panel-section { display: none; }
+        .panel-section.active { display: block; }
+        .appointment-card { background: #fff; border-left: 4px solid var(--accent); padding: 15px; border-radius: 8px; margin-bottom: 12px; }
+        .appointment-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+        .appointment-badge { font-size: 0.65rem; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+        .badge-home { background: #fff3cd; color: #856404; }
+        .badge-studio { background: #d1ecf1; color: #0c5460; }
+        .appointment-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; justify-content: flex-end; }
+        .mini-btn { border: none; padding: 6px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; color: white; }
+        .btn-wa { background: var(--whatsapp-color); }
+        .btn-confirm { background: var(--success-color); }
+        .btn-edit-app { background: var(--edit-color); }
+        .btn-finish { background: var(--primary); }
+        .btn-add-photo { background: #6c757d; margin-bottom: 15px; width: 100%; justify-content: center; }
+        .finance-card { background: var(--gold-light); border: 1px solid var(--accent); border-radius: 16px; padding: 18px; margin-bottom: 20px; }
+        .finance-title { font-size: 1.3rem; font-weight: bold; color: var(--primary); border-left: 4px solid var(--accent); padding-left: 10px; margin-bottom: 15px; }
+        .sangria-box { background: white; border-radius: 12px; padding: 12px; margin: 15px 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .filter-box { display: flex; gap: 8px; margin: 10px 0; align-items: center; flex-wrap: wrap; }
+        .filter-box input, .filter-box select { padding: 8px; border-radius: 8px; border: 1px solid #ccc; flex: 1; }
+        .total-receita { font-size: 1.2rem; font-weight: bold; background: var(--primary); color: white; padding: 12px; border-radius: 12px; text-align: center; }
+        .completed-item { background: #f8f9fa; border-left: 3px solid var(--success-color); padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+        .edit-modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:200; display:flex; justify-content:center; align-items:center; }
+        .edit-modal-box { background: white; width: 90%; max-width: 400px; border-radius: 20px; padding: 20px; max-height: 90vh; overflow-y: auto; }
+        .edit-card, .edit-modal-box { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; }
+        .save-btn { background: var(--primary); color: white; border: none; width: 100%; padding: 14px; border-radius: 6px; cursor: pointer; text-transform: uppercase; font-weight: 500; }
+        .footer-text { text-align: center; font-size: 0.7rem; color: var(--text-muted); margin: 20px 0 15px; }
+        
+        /* ========== LIGHTBOX COM ZOOM E SWIPE ========== */
+        .fullscreen-modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index:1000; display: none; justify-content: center; align-items: center; flex-direction: column; }
+        .lightbox-container { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden; touch-action: none; }
+        .lightbox-image-wrapper { width: 100%; height: 85%; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
+        .lightbox-image { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.05s linear; will-change: transform; cursor: grab; }
+        .lightbox-image:active { cursor: grabbing; }
+        .lightbox-close { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 30px; width: 40px; height: 40px; font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1002; backdrop-filter: blur(5px); transition: 0.2s; }
+        .lightbox-close:hover { background: var(--accent); color: black; }
+        .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-size: 28px; transition: 0.2s; z-index: 1001; backdrop-filter: blur(4px); }
+        .lightbox-nav.prev { left: 10px; }
+        .lightbox-nav.next { right: 10px; }
+        .lightbox-nav:hover { background: var(--accent); color: black; }
+        .lightbox-counter { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; color: white; background: rgba(0,0,0,0.6); padding: 6px 12px; width: fit-content; margin: 0 auto; border-radius: 40px; font-size: 0.8rem; backdrop-filter: blur(4px); z-index: 1001; pointer-events: none; }
+        @media (max-width: 500px) {
+            .lightbox-nav { width: 36px; height: 36px; font-size: 22px; }
+            .lightbox-close { top: 12px; right: 12px; width: 36px; height: 36px; }
+        }
+        
+        .settings-menu { position: fixed; top:0; right:-100%; width:75%; max-width:320px; height:100%; background:#fff; z-index:25; transition:right 0.3s; padding:30px 20px; overflow-y:auto; }
+        .settings-menu.open { right:0; }
+        .overlay-drawer { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:18; display:none; }
+        .panel-trigger-btn { background: var(--bg-light); border: 1px solid var(--accent); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; cursor: pointer; margin-bottom: 12px; }
+        .whatsapp-trigger-btn { background: #e8f9ee; border: 1px solid var(--whatsapp-color); color: #128c7e; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; text-decoration: none; margin-bottom: 12px; }
+        .manager-item { display: flex; gap: 8px; margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+        .loading { text-align: center; padding: 20px; color: var(--text-muted); }        .sync-status { font-size: 0.7rem; color: var(--success-color); text-align: center; padding: 5px; background: #e8f5e9; border-radius: 20px; margin: 5px 10px; }
+        .login-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 300; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .login-modal-card { background: white; width: 90%; max-width: 340px; border-radius: 28px; padding: 28px 22px; text-align: center; box-shadow: 0 20px 35px rgba(0,0,0,0.3); border: 1px solid var(--accent); }
+        .login-modal-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.7rem; margin-bottom: 20px; color: var(--primary); }
+        .login-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 40px; font-size: 0.9rem; }
+        .login-btn { background: var(--accent); color: var(--primary); border: none; width: 100%; padding: 12px; border-radius: 40px; font-weight: bold; margin-top: 15px; cursor: pointer; font-size: 1rem; }
+        .logout-btn { background: #ccc; color: #333; margin-top: 10px; }
+        .login-error { color: var(--danger-color); font-size: 0.75rem; margin-top: 10px; }
+        .user-status { font-size: 0.7rem; color: var(--success-color); margin-top: 8px; padding: 4px; background: #e9f5e9; border-radius: 20px; display: inline-block; }
+        .panel-access-btn { background: var(--primary); color: white; border: none; }
+        .card-gallery { position: relative; background: #000; }
+        .card-gallery > img { transition: opacity 0.3s ease; display: block; }
+        .thumbnails { display: flex; gap: 6px; padding: 8px 10px; background: linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.15)); justify-content: center; }
+        .thumbnails img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.25s ease; opacity: 0.75; }
+        .thumbnails img.active-thumb, .thumbnails img:hover { border-color: var(--accent); transform: scale(1.08); opacity: 1; box-shadow: 0 2px 8px rgba(212,175,55,0.4); }
+        .image-group { border: 1px dashed #d4af37; padding: 12px; border-radius: 12px; margin-bottom: 12px; background: linear-gradient(135deg, #fffdf5, #fff9e6); }
+        .image-group label { font-weight: 600; color: var(--accent); font-size: 0.8rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .photo-counter { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; z-index: 2; backdrop-filter: blur(4px); }
+    </style>
+</head>
+<body>
+<div class="mobile-container">
+    <!-- NOVO LIGHTBOX COM ZOOM E SWIPE -->
+    <div id="lightbox-modal" class="fullscreen-modal" onclick="closeLightboxOnBackground(event)">
+        <div class="lightbox-container">
+            <button class="lightbox-close" onclick="closeFullscreen()">&times;</button>
+            <button class="lightbox-nav prev" onclick="prevImage()"><i class="fas fa-chevron-left"></i></button>
+            <div class="lightbox-image-wrapper" id="lightbox-wrapper">
+                <img id="lightbox-img" class="lightbox-image" alt="Zoom" draggable="false">
+            </div>
+            <button class="lightbox-nav next" onclick="nextImage()"><i class="fas fa-chevron-right"></i></button>
+            <div class="lightbox-counter" id="lightbox-counter">1 / 1</div>
+        </div>
+    </div>
+    
+    <!-- TELA PRINCIPAL -->
+    <div id="main-screen" class="screen active">
+        <header><h1>Lanny Stilit</h1><p>Make-up & Hair Stylist</p></header>
+        <div class="tabs"><button class="tab-btn active" onclick="openTab(event, 'makeup')">Maquiagem</button><button class="tab-btn" onclick="openTab(event, 'hair')">Cabelo</button></div>
+        <div class="catalog-content"><div id="makeup" class="catalog-section active"><h2 class="section-title">A Arte da Maquiagem</h2><div class="grid" id="makeup-grid"><div class="loading">Carregando...</div></div></div>
+        <div id="hair" class="catalog-section"><h2 class="section-title">Penteados Exclusivos</h2><div class="grid" id="hair-grid"><div class="loading">Carregando...</div></div></div></div>
+        <p class="footer-text">© 2026 Lanny Stilit</p>
+    </div>
+
+    <!-- TELA AGENDAMENTO -->
+    <div id="booking-screen" class="screen"><div class="panel-header"><button class="back-btn" onclick="navigateToMainFromBooking()"><i class="fas fa-arrow-left"></i></button><h3 style="font-family: 'Cormorant Garamond'; font-size:1.5rem;">Solicitar Agendamento</h3></div>
+        <div class="panel-body"><div class="edit-card"><h4>Seus Dados</h4><div class="form-group"><label>Nome Completo *</label><input type="text" id="booking-name"></div><div class="form-group"><label>Data *</label><input type="date" id="booking-date"></div><div class="form-group"><label>Horário *</label><input type="time" id="booking-time"></div><div class="form-group"><label>WhatsApp *</label><div class="phone-input-container" style="display:flex; border:1px solid #ddd; border-radius:6px;"><span style="padding:10px;">+55</span><input type="tel" id="booking-phone" style="flex:1; border:none;" oninput="maskPhone(this)"></div></div>
+        <div class="form-group"><label>Tipo</label><select id="booking-type" onchange="toggleDeliveryFields()"><option value="studio">No Estúdio</option><option value="home">A Domicílio</option></select></div>
+        <div id="delivery-fields" style="display:none;"><div class="form-group"><label>Endereço</label><input type="text" id="booking-address"></div><div class="form-group"><label>Bairro</label><input type="text" id="booking-neighborhood"></div></div>
+        <div class="form-group"><label>Descrição</label><textarea id="booking-desc" rows="3"></textarea></div>
+        <button class="save-btn" style="background:var(--accent);" onclick="processBooking()">Agendar</button></div></div>
+    </div>
+
+    <!-- TELA MINHA EMPRESA -->
+    <div id="aboutme-screen" class="screen"><div class="panel-header"><button class="back-btn" onclick="navigateToMainFromAbout()"><i class="fas fa-arrow-left"></i></button><h3>Minha Empresa</h3></div>
+        <div class="panel-body"><div class="profile-container"><div class="profile-img-wrapper"><img id="company-profile-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" class="profile-img" onclick="openLightboxFromCompany()" style="width:100%; border-radius:20px; cursor:pointer;"></div><h2 class="profile-name">Lanny Stilit</h2><p class="profile-subtitle">Estética & Visagismo</p><div class="profile-bio-box"><p id="company-profile-desc">Seja bem-vinda ao meu catálogo! Sou especialista em realçar sua beleza natural...</p></div></div></div>
+    </div>
+    <!-- TELA PAINEL -->
+    <div id="panel-screen" class="screen"><div class="panel-header"><button class="back-btn" onclick="navigateToMain()"><i class="fas fa-arrow-left"></i></button><h3>Painel de Controle</h3><div style="margin-left:auto;"><span id="panel-user-email" class="user-status" style="background:#2c2c2c; color:white; padding:4px 8px;"></span></div></div>
+        <div class="panel-body">
+            <div class="horizontal-tabs">
+                <button class="panel-tab-btn active" onclick="switchPanelTab(event, 'panel-appointments')">Agenda</button>
+                <button class="panel-tab-btn" onclick="switchPanelTab(event, 'panel-make')">Make</button>
+                <button class="panel-tab-btn" onclick="switchPanelTab(event, 'panel-hair')">Cabelo</button>
+                <button class="panel-tab-btn" onclick="switchPanelTab(event, 'panel-company')">Empresa</button>
+                <button class="panel-tab-btn" onclick="switchPanelTab(event, 'panel-finance')">Financeiro</button>
+            </div>
+            <div id="panel-appointments" class="panel-section active"><div id="appointments-list"></div></div>
+            <div id="panel-make" class="panel-section"><div class="edit-card"><h4 id="form-make-title">Nova Postagem Maquiagem</h4><input type="hidden" id="edit-make-id"><div class="image-group"><label><i class="fas fa-image"></i> Foto 1 (Principal)</label><input type="text" id="input-img-make1" placeholder="Cole URL da imagem 1"><button class="mini-btn btn-add-photo" onclick="abrirGaleria('make', 1)" style="background:#6c757d; width:100%; margin-top:8px;"><i class="fas fa-images"></i> 📸 Foto 1</button></div><div class="image-group"><label><i class="fas fa-image"></i> Foto 2</label><input type="text" id="input-img-make2" placeholder="Cole URL da imagem 2"><button class="mini-btn btn-add-photo" onclick="abrirGaleria('make', 2)" style="background:#6c757d; width:100%; margin-top:8px;"><i class="fas fa-images"></i> 📸 Foto 2</button></div><div class="image-group"><label><i class="fas fa-image"></i> Foto 3</label><input type="text" id="input-img-make3" placeholder="Cole URL da imagem 3"><button class="mini-btn btn-add-photo" onclick="abrirGaleria('make', 3)" style="background:#6c757d; width:100%; margin-top:8px;"><i class="fas fa-images"></i> 📸 Foto 3</button></div><div class="image-group"><label><i class="fas fa-image"></i> Foto 4</label><input type="text" id="input-img-make4" placeholder="Cole URL da imagem 4"><button class="mini-btn btn-add-photo" onclick="abrirGaleria('make', 4)" style="background:#6c757d; width:100%; margin-top:8px;"><i class="fas fa-images"></i> 📸 Foto 4</button></div><div class="form-group"><label>Título</label><input type="text" id="input-title-make1"></div><div class="form-group"><label>Descrição</label><textarea id="input-desc-make1"></textarea></div><div class="form-group"><label>Preço</label><input type="text" id="input-price-make1"></div><button class="save-btn" onclick="saveMakeupChanges()">Salvar</button></div><h4>Postagens</h4><div id="manager-makeup-list"></div></div>
+            <div id="panel-hair" class="panel-section"><div class="edit-card"><h4>Nova Postagem Cabelo</h4><input type="hidden" id="edit-hair-id"><div class="image-group"><label><i class="fas fa-image"></i> Foto 1 (Principal)</label><input type="text" id="input-img-hair1" placeholder="Cole URL da imagem 1"><button class="mini-btn btn-add-photo" onclick="abrirGaleria('hair', 1)" style="background:#6c757d; width:100%; margin-top:8px;"><i class="fas fa-images"></i> 📸 Foto 1</button></div><div class="image-group"><label><i class="fas fa-image"></i> Foto 2</label><input type="text" id="input-img-hair2" placeholder="Cole URL da imagem 2"><button class="mini-btn btn-add-photo" onclick="abrirGaleria('hair', 2)" style="background:#6c757d; width:100%; margin-top:8px;"><i class="fas fa-images"></i> 📸 Foto 2</button></div><div class="image-group"><label><i class="fas fa-image"></i> Foto 3</label><input type="text" id="input-img-hair3" placeholder="Cole URL da imagem 3"><button class="mini-btn btn-add-photo" onclick="abrirGaleria('hair', 3)" style="background:#6c757d; width:100%; margin-top:8px;"><i class="fas fa-images"></i> 📸 Foto 3</button></div><div class="image-group"><label><i class="fas fa-image"></i> Foto 4</label><input type="text" id="input-img-hair4" placeholder="Cole URL da imagem 4"><button class="mini-btn btn-add-photo" onclick="abrirGaleria('hair', 4)" style="background:#6c757d; width:100%; margin-top:8px;"><i class="fas fa-images"></i> 📸 Foto 4</button></div><div class="form-group"><label>Título</label><input type="text" id="input-title-hair1"></div><div class="form-group"><label>Descrição</label><textarea id="input-desc-hair1"></textarea></div><div class="form-group"><label>Preço</label><input type="text" id="input-price-hair1"></div><button class="save-btn" onclick="saveHairChanges()">Salvar</button></div><div id="manager-hair-list"></div></div>
+            <div id="panel-company" class="panel-section"><div class="edit-card"><h4>Editar Empresa</h4><div class="form-group"><label>Foto URL</label><input type="text" id="input-img-company" value="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"></div><button class="mini-btn btn-add-photo" onclick="abrirGaleria('company')" style="background:#6c757d; width:100%; margin-bottom:15px;"><i class="fas fa-images"></i> 📸 ADD FOTOS (Galeria)</button><div class="form-group"><label>Biografia</label><textarea id="input-desc-company">Seja bem-vinda ao meu catálogo! Sou especialista em realçar sua beleza natural...</textarea></div><button class="save-btn" onclick="saveCompanyChanges()">Salvar Empresa</button></div></div>
+            <div id="panel-finance" class="panel-section"><div class="finance-card"><div class="finance-title">📊 Resumo Financeiro</div><div class="filter-box"><label>Filtrar Mês:</label><input type="month" id="finance-month-filter"><button class="mini-btn" style="background:var(--accent); color:#000;" onclick="renderFinanceiro()">Filtrar</button></div><div class="total-receita" id="total-receita-mes">Total do mês: R$ 0,00</div></div><div class="finance-card"><div class="finance-title">💰 Sangria (Retirada)</div><div class="sangria-box"><input type="number" id="sangria-valor" placeholder="Valor R$"><input type="text" id="sangria-desc" placeholder="Descrição"><button class="mini-btn" style="background:var(--danger-color);" onclick="registrarSangria()">Registrar Sangria</button></div><div id="lista-sangrias" style="margin-top:12px;"></div></div><div class="finance-card"><div class="finance-title">✅ Agenda Concluída (Pagamentos)</div><div id="completed-list-finance"></div></div></div>
+        </div>
+    </div>
+
+    <div id="edit-appointment-modal" class="edit-modal-overlay" style="display:none;"><div class="edit-modal-box"><h3>✏️ Editar Agendamento</h3><input type="hidden" id="edit-app-id"><div class="form-group"><label>Nome</label><input type="text" id="edit-app-name"></div><div class="form-group"><label>Data</label><input type="date" id="edit-app-date"></div><div class="form-group"><label>Hora</label><input type="time" id="edit-app-time"></div><div class="form-group"><label>Tipo</label><select id="edit-app-type"><option value="studio">Estúdio</option><option value="home">Domicílio</option></select></div><div id="edit-delivery-fields"><div class="form-group"><label>Endereço</label><input type="text" id="edit-app-address"></div><div class="form-group"><label>Bairro</label><input type="text" id="edit-app-neighborhood"></div></div><div class="form-group"><label>Observações</label><textarea id="edit-app-desc" rows="2"></textarea></div><div class="form-group"><label>Valor Total (R$)</label><input type="number" step="0.01" id="edit-app-valor" oninput="calcularCashbackSaldo()"></div><div class="form-group"><label>Desconto Cashback (%)</label><input type="number" step="0.01" id="edit-app-cashbackPercent" oninput="calcularCashbackSaldo()"></div><div class="form-group"><label>Saldo Cashback (R$)</label><input type="text" id="edit-app-cashbackAmount" readonly style="background:#f0f0f0;"></div><div style="display:flex; gap:10px; margin-top:20px;"><button class="save-btn" onclick="saveAppointmentChanges()" style="background:var(--success-color);">Salvar</button><button class="save-btn" onclick="closeEditModal()" style="background:#6c757d;">Cancelar</button></div></div></div>
+
+    <button id="fixed-booking-btn" class="booking-fixed-btn" onclick="navigateToBooking()"><i class="fas fa-calendar-check"></i> Agendar Horário</button>
+    <div id="fixed-buttons-right" class="fixed-buttons-container"><div id="notification-bubble" class="notification-bubble hidden-fixed" onclick="dismissNotification(event)"><i class="fas fa-bell"></i> Novo Agendamento!</div><button id="fixed-settings-btn" class="settings-fixed-btn" onclick="toggleSettingsMenu()"><i class="fas fa-cog"></i></button></div>
+    <div id="drawer-overlay" class="overlay-drawer"></div>
+    <div id="settings-drawer" class="settings-menu"><button class="close-menu-btn" onclick="toggleSettingsMenu()" style="background:none; border:none; font-size:1.5rem; float:right;"><i class="fas fa-times"></i></button><h3>Ajustes</h3><a href="https://wa.me/558599415246?text=Ol%C3%A1" target="_blank" class="whatsapp-trigger-btn">WHATSAPP <i class="fab fa-whatsapp"></i></a><div class="panel-trigger-btn" onclick="navigateToAboutMe()">MINHA EMPRESA</div><div id="dynamic-login-logout"></div></div>
+    <div id="login-modal" class="login-modal-overlay"><div class="login-modal-card"><h3>🔐 Acesso Restrito</h3><input type="email" id="login-email" class="login-input" placeholder="E-mail"><input type="password" id="login-password" class="login-input" placeholder="Senha"><button class="login-btn" onclick="loginFirebase()">Entrar no Painel</button><div id="login-error-msg" class="login-error"></div></div></div>
+</div>
+
+<script>
+    // ==================== CONFIGURAÇÃO FIREBASE (MANTIDA) ====================
+    const firebaseConfig = {
+        apiKey: "AIzaSyCWJPvkRuSQMuuVDhdfH6oyLrPPKeAm3n0",
+        authDomain: "catalog-lanny-stilit.firebaseapp.com",
+        projectId: "catalog-lanny-stilit",
+        storageBucket: "catalog-lanny-stilit.firebasestorage.app",
+        messagingSenderId: "53044575318",
+        appId: "1:53044575318:web:0e1f91217379c378a30ff7"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    
+    let listMakeup = [], listHair = [], listAppointments = [], completedAppointments = [], sangrias = [];
+    let companyData = { img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80", bio: "Seja bem-vinda ao meu catálogo! Sou especialista em realçar sua beleza natural..." };
+    let currentUser = null;
+
+    // ========== LIGHTBOX ZOOM + SWIPE ==========
+    let lightboxImages = [];
+    let currentLightboxIndex = 0;
+    let scale = 1, translateX = 0, translateY = 0;
+    let initialDistance = 0, initialScale = 1;
+    let startX = 0, startY = 0;
+    let isDragging = false;
+    let lastTap = 0;
+
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxWrapper = document.getElementById('lightbox-wrapper');
+    const modal = document.getElementById('lightbox-modal');
+    const counterSpan = document.getElementById('lightbox-counter');
+
+    function resetTransform() {
+        scale = 1;
+        translateX = 0;
+        translateY = 0;
+        applyTransform();
+    }
+    function applyTransform() {
+        if(lightboxImg) lightboxImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+    }
+    function updateCounter() { if(counterSpan) counterSpan.innerText = `${currentLightboxIndex+1} / ${lightboxImages.length}`; }
+    function loadLightboxImage() {
+        if(lightboxImages.length && lightboxImg) {
+            lightboxImg.src = lightboxImages[currentLightboxIndex];
+            resetTransform();
+            updateCounter();
+        }
+    }
+    function openLightbox(imagesArray, startIndex) {
+        if(!imagesArray || imagesArray.length === 0) return;
+        lightboxImages = [...imagesArray];
+        currentLightboxIndex = Math.min(startIndex, lightboxImages.length-1);
+        loadLightboxImage();
+        modal.style.display = 'flex';
+        resetTransform();
+        document.body.style.overflow = 'hidden';
+    }
+    function closeFullscreen() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        resetTransform();
+    }
+    function closeLightboxOnBackground(e) { if(e.target === modal) closeFullscreen(); }
+    function nextImage() {
+        if(lightboxImages.length === 0) return;
+        currentLightboxIndex = (currentLightboxIndex + 1) % lightboxImages.length;
+        loadLightboxImage();
+        resetTransform();
+    }
+    function prevImage() {
+        if(lightboxImages.length === 0) return;
+        currentLightboxIndex = (currentLightboxIndex - 1 + lightboxImages.length) % lightboxImages.length;
+        loadLightboxImage();
+        resetTransform();
+    }
+    // Touch events para zoom e arrasto
+    function handleTouchStart(e) {
+        if(lightboxImages.length <= 1) return;
+        const touches = e.touches;
+        if(touches.length === 2) {
+            e.preventDefault();
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            initialDistance = Math.hypot(dx, dy);
+            initialScale = scale;
+        } else if(touches.length === 1) {
+            startX = touches[0].clientX;
+            startY = touches[0].clientY;
+            isDragging = true;
+        }
+    }
+    function handleTouchMove(e) {
+        const touches = e.touches;
+        if(touches.length === 2 && initialDistance > 0) {
+            e.preventDefault();
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            const newDistance = Math.hypot(dx, dy);
+            let newScale = initialScale * (newDistance / initialDistance);
+            newScale = Math.min(3.5, Math.max(1, newScale));
+            if(newScale !== scale) {
+                scale = newScale;
+                applyTransform();
+            }
+        } else if(touches.length === 1 && isDragging && scale > 1) {
+            e.preventDefault();
+            const deltaX = touches[0].clientX - startX;
+            const deltaY = touches[0].clientY - startY;
+            translateX += deltaX;
+            translateY += deltaY;
+            const maxTranslateX = (lightboxImg.clientWidth * (scale - 1)) / 2;
+            const maxTranslateY = (lightboxImg.clientHeight * (scale - 1)) / 2;
+            translateX = Math.min(maxTranslateX, Math.max(-maxTranslateX, translateX));
+            translateY = Math.min(maxTranslateY, Math.max(-maxTranslateY, translateY));
+            applyTransform();
+            startX = touches[0].clientX;
+            startY = touches[0].clientY;
+        } else if(touches.length === 1 && scale === 1 && isDragging) {
+            // swipe horizontal
+            const deltaX = touches[0].clientX - startX;
+            if(Math.abs(deltaX) > 40) {
+                if(deltaX > 0) prevImage();
+                else nextImage();
+                isDragging = false;
+                e.preventDefault();
+            }
+        }
+    }
+    function handleTouchEnd() {
+        isDragging = false;
+        initialDistance = 0;
+        // double tap zoom
+        const now = Date.now();
+        if(now - lastTap < 300) {
+            if(scale > 1) resetTransform();
+            else { scale = 2.5; applyTransform(); }
+        }
+        lastTap = now;
+    }
+    if(lightboxWrapper) {
+        lightboxWrapper.addEventListener('touchstart', handleTouchStart, {passive: false});
+        lightboxWrapper.addEventListener('touchmove', handleTouchMove, {passive: false});
+        lightboxWrapper.addEventListener('touchend', handleTouchEnd);
+        lightboxWrapper.addEventListener('touchcancel', handleTouchEnd);
+    }
+
+    // ========== FUNÇÕES ORIGINAIS ADAPTADAS ==========
+    function getImagesArray(item) { return [item.img1, item.img2, item.img3, item.img4].filter(img => img && img.trim() !== ''); }
+    function renderMainGrid(gridId, items) {
+        const grid = document.getElementById(gridId);
+        if(!grid) return;
+        grid.innerHTML = '';
+        if(items.length === 0) { grid.innerHTML = '<div class="loading">Nenhum item encontrado</div>'; return; }
+        items.forEach(item => { 
+            const images = getImagesArray(item);
+            const mainImg = images[0] || '';
+            const totalPhotos = images.length;
+            let thumbnailsHtml = '';
+            if(totalPhotos > 1) {
+                thumbnailsHtml = `<div class="thumbnails">`;
+                images.forEach((img, idx) => {
+                    thumbnailsHtml += `<img src="${img}" onclick="openLightboxFromCard(event, '${item.id}', ${idx}, this.src)" class="${idx === 0 ? 'active-thumb' : ''}">`;
+                });
+                thumbnailsHtml += `</div>`;
+            }
+            const counterHtml = totalPhotos > 1 ? `<div class="photo-counter"><i class="fas fa-images"></i> ${totalPhotos} fotos</div>` : '';
+            const imagesDataAttr = JSON.stringify(images).replace(/"/g, '&quot;');
+            grid.innerHTML += `<div class="card" data-card-images='${imagesDataAttr}' data-card-id="${item.id}">
+                <div class="card-gallery">
+                    ${counterHtml}
+                    <img id="main-img-${item.id}" src="${mainImg}" onclick="openLightboxFromCard(event, '${item.id}', 0, this.src)">
+                    ${thumbnailsHtml}
+                </div>
+                <div class="card-info">
+                    <h3>${item.title}</h3>
+                    <p>${item.desc}</p>
+                    <p class="card-price">${item.price}</p>
+                </div>
+            </div>`; 
+        });
+    }
+    function openLightboxFromCard(event, itemId, index, src) {
+        event.stopPropagation();
+        const card = document.querySelector(`.card[data-card-id="${itemId}"]`) || event.currentTarget.closest('.card');
+        if(card) {
+            const imagesAttr = card.getAttribute('data-card-images');
+            if(imagesAttr) {
+                try {
+                    const images = JSON.parse(imagesAttr);
+                    if(images && images.length) openLightbox(images, index);
+                    else openLightbox([src], 0);
+                } catch(e) { openLightbox([src], 0); }
+            } else openLightbox([src], 0);
+        } else openLightbox([src], 0);
+    }
+    function openLightboxFromCompany() {
+        const imgUrl = document.getElementById('company-profile-img').src;
+        if(imgUrl) openLightbox([imgUrl], 0);
+    }
+    function swapImage(event, itemId, idx, src) {
+        event.stopPropagation();
+        const mainImg = document.getElementById(`main-img-${itemId}`);
+        if(!mainImg) return;
+        mainImg.style.opacity = '0.5';
+        setTimeout(() => { mainImg.src = src; mainImg.style.opacity = '1'; }, 150);
+        const card = mainImg.closest('.card');
+        if(card) {
+            const thumbs = card.querySelectorAll('.thumbnails img');
+            thumbs.forEach(t => t.classList.remove('active-thumb'));
+            event.currentTarget.classList.add('active-thumb');
+        }
+    }
+    
+    // Restante das funções existentes (mantidas originais)
+    async function loadPublicData() { /* ... igual ... */ 
+        try {
+            const makeupSnapshot = await db.collection('makeup').orderBy('createdAt', 'desc').get();
+            listMakeup = [];
+            makeupSnapshot.forEach(doc => { const data = normalizeImages(doc.data()); listMakeup.push({ id: doc.id, ...data }); });
+            if(listMakeup.length === 0) { const defaultMake = { img1: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=500&q=80", img2: "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?auto=format&fit=crop&w=500&q=80", img3: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=500&q=80", img4: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=500&q=80", title: "Make Social Premium", desc: "Ideal para festas...", price: "Sob Consulta", createdAt: new Date() }; const docRef = await db.collection('makeup').add(defaultMake); listMakeup.push({ id: docRef.id, ...defaultMake }); }
+            const hairSnapshot = await db.collection('hair').orderBy('createdAt', 'desc').get();
+            listHair = [];
+            hairSnapshot.forEach(doc => { const data = normalizeImages(doc.data()); listHair.push({ id: doc.id, ...data }); });
+            if(listHair.length === 0) { const defaultHair = { img1: "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=500&q=80", img2: "https://images.unsplash.com/photo-1522337055103-2337b2316e85?auto=format&fit=crop&w=500&q=80", img3: "https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1?auto=format&fit=crop&w=500&q=80", img4: "https://images.unsplash.com/photo-1560869713-7d0a29430803?auto=format&fit=crop&w=500&q=80", title: "Coque Despojado", desc: "Do clássico...", price: "Sob Consulta", createdAt: new Date() }; const docRef = await db.collection('hair').add(defaultHair); listHair.push({ id: docRef.id, ...defaultHair }); }
+            const companySnapshot = await db.collection('company').doc('profile').get();
+            if(companySnapshot.exists) { companyData = companySnapshot.data(); document.getElementById('company-profile-img').src = companyData.img; document.getElementById('company-profile-desc').innerText = companyData.bio; if(document.getElementById('input-img-company')) document.getElementById('input-img-company').value = companyData.img; if(document.getElementById('input-desc-company')) document.getElementById('input-desc-company').value = companyData.bio; }
+            renderMainGrid('makeup-grid', listMakeup);
+            renderMainGrid('hair-grid', listHair);
+        } catch(error) { console.error(error); }
+    }
+    function normalizeImages(data) { if(data.img && !data.img1) { data.img1 = data.img; data.img2 = data.img2 || ''; data.img3 = data.img3 || ''; data.img4 = data.img4 || ''; } data.img1 = data.img1 || ''; data.img2 = data.img2 || ''; data.img3 = data.img3 || ''; data.img4 = data.img4 || ''; return data; }
+    async function loadPrivateData() { if(!currentUser) return; try { const appointmentsSnapshot = await db.collection('appointments').where('status', '==', 'active').get(); listAppointments = []; appointmentsSnapshot.forEach(doc => { let data = doc.data(); if(data.cashbackPercent === undefined) data.cashbackPercent = 0; listAppointments.push({ id: doc.id, ...data }); }); const completedSnapshot = await db.collection('appointments').where('status', '==', 'completed').get(); completedAppointments = []; completedSnapshot.forEach(doc => { let data = doc.data(); if(data.cashbackPercent === undefined) data.cashbackPercent = 0; completedAppointments.push({ id: doc.id, ...data }); }); const sangriaSnapshot = await db.collection('sangrias').orderBy('data', 'desc').get(); sangrias = []; sangriaSnapshot.forEach(doc => { sangrias.push({ id: doc.id, ...doc.data() }); }); if(document.getElementById('manager-makeup-list')) renderManagerList('manager-makeup-list', listMakeup, 'make'); if(document.getElementById('manager-hair-list')) renderManagerList('manager-hair-list', listHair, 'hair'); } catch(e){console.error(e);} }
+    function renderManagerList(managerId, items, type) { const list = document.getElementById(managerId); if(!list) return; list.innerHTML = ''; items.forEach(item => { const mainImg = item.img1 || ''; list.innerHTML += `<div class="manager-item"><div style="display:flex; gap:8px;"><img src="${mainImg}" width="50" height="50" style="object-fit:cover; border-radius:8px;"><div><h5>${item.title}</h5><p>${item.price}</p></div></div><div><button class="mini-btn" style="background:var(--edit-color);" onclick="startEdit('${type}','${item.id}')">Editar</button><button class="mini-btn" style="background:var(--danger-color);" onclick="deletePost('${type}','${item.id}')">Deletar</button></div></div>`; }); }
+    function renderAppointmentsList() { const container = document.getElementById('appointments-list'); if(!container) return; if(!currentUser) { container.innerHTML = '<div>🔒 Faça login</div>'; return; } if(listAppointments.length === 0) { container.innerHTML = '<div>Nenhum agendamento.</div>'; return; } listAppointments.sort((a,b)=>new Date(a.date+'T'+a.time)-new Date(b.date+'T'+b.time)); container.innerHTML = ''; listAppointments.forEach(app => { const formattedDate = app.date.split('-').reverse().join('/'); let locationHtml = (app.type === 'home') ? `<p>🏠 ${app.address} - ${app.neighborhood}</p>` : ''; const phoneClean = app.phone.replace(/\D/g,''); const waLink = `https://wa.me/55${phoneClean}?text=Olá ${app.name}`; container.innerHTML += `<div class="appointment-card"><div class="appointment-card-header"><h5>${app.name}</h5><span class="appointment-badge ${app.type==='home'?'badge-home':'badge-studio'}">${app.type==='home'?'Domicílio':'Estúdio'}</span></div><div><p>📅 ${formattedDate} às ${app.time}</p><p>📞 +55 ${app.phone}</p>${locationHtml}${app.desc?`<div>${app.desc}</div>`:''}<p><strong>Valor:</strong> R$ ${app.valor ? parseFloat(app.valor).toFixed(2) : '0,00'} | Cashback ${app.cashbackPercent || 0}%</p></div><div class="appointment-actions"><button class="mini-btn btn-wa" onclick="window.open('${waLink}','_blank')"><i class="fab fa-whatsapp"></i> WhatsApp</button><button class="mini-btn btn-confirm" onclick="confirmarAgendamento('${app.id}')">Confirmar</button><button class="mini-btn btn-edit-app" onclick="openEditAppointmentModal('${app.id}')">Editar</button><button class="mini-btn btn-finish" onclick="concluirAgendamento('${app.id}')">Concluir</button></div></div>`; }); }
+    async function deletePost(type, id) { if(!currentUser) return; if(confirm("Deletar?")) { if(type === 'make') { await db.collection('makeup').doc(id).delete(); listMakeup = listMakeup.filter(i => i.id !== id); renderMainGrid('makeup-grid', listMakeup); renderManagerList('manager-makeup-list', listMakeup, 'make'); } else { await db.collection('hair').doc(id).delete(); listHair = listHair.filter(i => i.id !== id); renderMainGrid('hair-grid', listHair); renderManagerList('manager-hair-list', listHair, 'hair'); } } }
+    function startEdit(type, id) { /* mantido */ if(type==='make'){ const item=listMakeup.find(i=>i.id===id); document.getElementById('edit-make-id').value=item.id; document.getElementById('input-img-make1').value=item.img1||''; document.getElementById('input-img-make2').value=item.img2||''; document.getElementById('input-img-make3').value=item.img3||''; document.getElementById('input-img-make4').value=item.img4||''; document.getElementById('input-title-make1').value=item.title; document.getElementById('input-desc-make1').value=item.desc; document.getElementById('input-price-make1').value=item.price.replace("R$ ",""); switchPanelTab({currentTarget:document.querySelector(".panel-tab-btn[onclick*='panel-make']")},'panel-make'); } else { const item=listHair.find(i=>i.id===id); document.getElementById('edit-hair-id').value=item.id; document.getElementById('input-img-hair1').value=item.img1||''; document.getElementById('input-img-hair2').value=item.img2||''; document.getElementById('input-img-hair3').value=item.img3||''; document.getElementById('input-img-hair4').value=item.img4||''; document.getElementById('input-title-hair1').value=item.title; document.getElementById('input-desc-hair1').value=item.desc; document.getElementById('input-price-hair1').value=item.price.replace("R$ ",""); switchPanelTab({currentTarget:document.querySelector(".panel-tab-btn[onclick*='panel-hair']")},'panel-hair'); } }
+    async function saveMakeupChanges() { if(!currentUser) return; const id=document.getElementById('edit-make-id').value; const img1=document.getElementById('input-img-make1').value.trim(); const img2=document.getElementById('input-img-make2').value.trim(); const img3=document.getElementById('input-img-make3').value.trim(); const img4=document.getElementById('input-img-make4').value.trim(); const title=document.getElementById('input-title-make1').value; const desc=document.getElementById('input-desc-make1').value; let price=document.getElementById('input-price-make1').value; if(!img1||!title) return alert("Preencha foto principal e título"); if(!price.toLowerCase().includes('consulta')&&!price.includes('R$')) price="R$ "+price; if(id){ await db.collection('makeup').doc(id).update({img1,img2,img3,img4,title,desc,price}); const item=listMakeup.find(i=>i.id===id); if(item){item.img1=img1;item.img2=img2;item.img3=img3;item.img4=img4;item.title=title;item.desc=desc;item.price=price;} } else { const newItem={img1,img2,img3,img4,title,desc,price,createdAt:new Date()}; const docRef=await db.collection('makeup').add(newItem); listMakeup.push({id:docRef.id,...newItem}); } clearMakeFields(); renderMainGrid('makeup-grid',listMakeup); renderManagerList('manager-makeup-list',listMakeup,'make'); alert("Salvo!"); navigateToMain(); }
+    async function saveHairChanges() { if(!currentUser) return; const id=document.getElementById('edit-hair-id').value; const img1=document.getElementById('input-img-hair1').value.trim(); const img2=document.getElementById('input-img-hair2').value.trim(); const img3=document.getElementById('input-img-hair3').value.trim(); const img4=document.getElementById('input-img-hair4').value.trim(); const title=document.getElementById('input-title-hair1').value; const desc=document.getElementById('input-desc-hair1').value; let price=document.getElementById('input-price-hair1').value; if(!img1||!title) return alert("Preencha foto principal e título"); if(!price.toLowerCase().includes('consulta')&&!price.includes('R$')) price="R$ "+price; if(id){ await db.collection('hair').doc(id).update({img1,img2,img3,img4,title,desc,price}); const item=listHair.find(i=>i.id===id); if(item){item.img1=img1;item.img2=img2;item.img3=img3;item.img4=img4;item.title=title;item.desc=desc;item.price=price;} } else { const newItem={img1,img2,img3,img4,title,desc,price,createdAt:new Date()}; const docRef=await db.collection('hair').add(newItem); listHair.push({id:docRef.id,...newItem}); } clearHairFields(); renderMainGrid('hair-grid',listHair); renderManagerList('manager-hair-list',listHair,'hair'); alert("Salvo!"); navigateToMain(); }
+    async function saveCompanyChanges() { if(!currentUser) return; const img=document.getElementById('input-img-company').value; const bio=document.getElementById('input-desc-company').value; await db.collection('company').doc('profile').set({img,bio}); companyData={img,bio}; document.getElementById('company-profile-img').src=img; document.getElementById('company-profile-desc').innerText=bio; alert("Salvo!"); navigateToMain(); }
+    async function processBooking() { /* mantido original */ const name=document.getElementById('booking-name').value.trim(); const date=document.getElementById('booking-date').value; const time=document.getElementById('booking-time').value; const phone=document.getElementById('booking-phone').value.trim(); const type=document.getElementById('booking-type').value; const address=document.getElementById('booking-address').value.trim(); const neighborhood=document.getElementById('booking-neighborhood').value.trim(); const desc=document.getElementById('booking-desc').value.trim(); if(!name||!date||!time||!phone) { alert("Preencha os obrigatórios"); return; } if(type==='home'&&(!address||!neighborhood)) { alert("Endereço completo"); return; } const newBooking={name,date,time,phone,type,address,neighborhood,desc,valor:null,status:'active',createdAt:new Date(),cashbackPercent:0,cashbackAmount:0}; const docRef=await db.collection('appointments').add(newBooking); if(currentUser) { listAppointments.push({id:docRef.id,...newBooking}); renderAppointmentsList(); } document.getElementById('booking-name').value=''; document.getElementById('booking-date').value=''; document.getElementById('booking-time').value=''; document.getElementById('booking-phone').value=''; document.getElementById('booking-type').value='studio'; document.getElementById('booking-address').value=''; document.getElementById('booking-neighborhood').value=''; document.getElementById('booking-desc').value=''; document.getElementById('delivery-fields').style.display='none'; alert("Agendamento solicitado!"); if(currentUser) document.getElementById('notification-bubble').classList.remove('hidden-fixed'); document.getElementById('booking-screen').classList.remove('active'); document.getElementById('main-screen').classList.add('active'); toggleFixedButtonsVisibility(true); window.open(`https://wa.me/558599415246?text=${encodeURIComponent("Olá Lanny, acabei de fazer um Agendamento no App!!")}`, '_blank'); }
+    function renderFinanceiro() { if(!currentUser) { const totalEl=document.getElementById('total-receita-mes'); if(totalEl) totalEl.innerHTML='🔒 Faça login.'; return; } const monthFilter=document.getElementById('finance-month-filter')?.value||''; let filteredCompleted=[...completedAppointments]; if(monthFilter) filteredCompleted=filteredCompleted.filter(c=>c.date&&c.date.startsWith(monthFilter)); let totalMes=filteredCompleted.reduce((sum,c)=>sum+(c.valor||0),0); const sangriasFiltradas=sangrias.filter(s=>s.data&&(!monthFilter||s.data.startsWith(monthFilter))); const totalSangrias=sangriasFiltradas.reduce((s,i)=>s+i.valor,0); const saldoLiquido=totalMes-totalSangrias; const totalEl=document.getElementById('total-receita-mes'); if(totalEl) totalEl.innerHTML=`💰 Total Bruto: R$ ${totalMes.toFixed(2)} | 🧾 Sangrias: R$ ${totalSangrias.toFixed(2)}<br>📌 Saldo Líquido: R$ ${saldoLiquido.toFixed(2)}`; const sangriaDiv=document.getElementById('lista-sangrias'); if(sangriaDiv){ sangriaDiv.innerHTML=`<strong>Histórico Sangrias:</strong>`; sangriasFiltradas.forEach(s=>{ sangriaDiv.innerHTML+=`<div style="background:#fff; margin:5px 0; padding:8px; border-radius:8px;">R$ ${s.valor.toFixed(2)} - ${s.desc||'Sem desc'} (${s.data}) <button class="mini-btn" style="background:gray;" onclick="deletarSangria('${s.id}')">🗑️</button></div>`; }); } const completedDiv=document.getElementById('completed-list-finance'); if(completedDiv){ completedDiv.innerHTML=`<strong>Serviços finalizados (mês selecionado):</strong>`; filteredCompleted.forEach(c=>{ const dateBr=c.date.split('-').reverse().join('/'); const local=c.type==='home'?`${c.address||''} ${c.neighborhood||''}`:'Estúdio'; completedDiv.innerHTML+=`<div class="completed-item"><div><b>${c.name}</b> - ${dateBr} ${c.time}</div><div>📍 ${local}</div><div>📝 ${c.desc||'Nenhuma obs'}</div><div>💰 Valor Total: R$ ${(c.valor||0).toFixed(2)}</div><div>🎁 Cashback: ${c.cashbackPercent||0}% | Saldo: R$ ${(c.cashbackAmount||0).toFixed(2)}</div><div class="appointment-actions"><button class="mini-btn btn-wa" onclick="enviarComprovanteCompleto('${c.id}')"><i class="fas fa-receipt"></i> Comprovante</button><button class="mini-btn" style="background:red;" onclick="deletarConcluido('${c.id}')">Deletar</button></div></div>`; }); } }
+    function enviarComprovanteCompleto(id) { const item=completedAppointments.find(c=>c.id===id); if(!item)return; const dataFormat=item.date.split('-').reverse().join('/'); const local=item.type==='home'?`${item.address}, ${item.neighborhood}`:'Estúdio Lanny'; const valorTotal=item.valor?parseFloat(item.valor).toFixed(2):'0,00'; const msg=`✅ *PAGAMENTO CONFIRMADO!*\n\n*Nome:* ${item.name}\n*Data:* ${dataFormat}\n*Hora:* ${item.time}\n*Local:* ${local}\n*Obs:* ${item.desc||'Nenhuma'}\n*Valor Total:* R$ ${valorTotal}\n*Cashback %:* ${item.cashbackPercent||0}%\n*Saldo Cashback:* R$ ${(item.cashbackAmount||0).toFixed(2)}\n\nAgradecemos! 💄✨`; window.open(`https://wa.me/55${item.phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank'); }
+    async function registrarSangria() { if(!currentUser)return; const valor=parseFloat(document.getElementById('sangria-valor').value); const desc=document.getElementById('sangria-desc').value; if(isNaN(valor)||valor<=0){alert("Valor inválido");return;} const newSangria={valor,desc:desc||"Retirada",data:new Date().toISOString().slice(0,10)}; const docRef=await db.collection('sangrias').add(newSangria); sangrias.push({id:docRef.id,...newSangria}); document.getElementById('sangria-valor').value=''; document.getElementById('sangria-desc').value=''; renderFinanceiro(); }
+    function deletarSangria(id) { if(!currentUser)return; if(confirm("Excluir?")){ db.collection('sangrias').doc(id).delete(); sangrias=sangrias.filter(s=>s.id!==id); renderFinanceiro(); } }
+    function deletarConcluido(id) { if(!currentUser)return; if(confirm("Deletar concluído?")){ db.collection('appointments').doc(id).delete(); completedAppointments=completedAppointments.filter(c=>c.id!==id); renderFinanceiro(); } }
+    async function confirmarAgendamento(id) { const app=listAppointments.find(a=>a.id===id); if(!app)return; const formatted=app.date.split('-').reverse().join('/'); const msg=`Olá, seu agendamento foi confirmado para ${formatted} / ${app.time}`; window.open(`https://wa.me/55${app.phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank'); }
+    async function concluirAgendamento(id) { if(!currentUser)return; const app=listAppointments.find(a=>a.id===id); if(!app)return; let valorFinal=app.valor?parseFloat(app.valor):0; if(!valorFinal&&app.valor===undefined){ const digitado=prompt("Valor recebido R$:"); if(digitado===null)return; valorFinal=parseFloat(digitado.replace(',','.'))||0; } const completed={...app,valor:valorFinal,dataConclusao:new Date().toISOString().slice(0,10),status:'completed'}; await db.collection('appointments').doc(id).update({status:'completed',valor:valorFinal,dataConclusao:completed.dataConclusao}); completedAppointments.push(completed); listAppointments=listAppointments.filter(a=>a.id!==id); renderAppointmentsList(); renderFinanceiro(); alert("Concluído!"); }
+    function openEditAppointmentModal(id) { const app=listAppointments.find(a=>a.id===id); if(!app)return; document.getElementById('edit-app-id').value=app.id; document.getElementById('edit-app-name').value=app.name||''; document.getElementById('edit-app-date').value=app.date||''; document.getElementById('edit-app-time').value=app.time||''; document.getElementById('edit-app-type').value=app.type||'studio'; document.getElementById('edit-app-address').value=app.address||''; document.getElementById('edit-app-neighborhood').value=app.neighborhood||''; document.getElementById('edit-app-desc').value=app.desc||''; document.getElementById('edit-app-valor').value=app.valor||''; document.getElementById('edit-app-cashbackPercent').value=app.cashbackPercent||0; calcularCashbackSaldo(); document.getElementById('edit-appointment-modal').style.display='flex'; }
+    function calcularCashbackSaldo() { const valorTotal=parseFloat(document.getElementById('edit-app-valor').value)||0; const percent=parseFloat(document.getElementById('edit-app-cashbackPercent').value)||0; const saldo=(percent/100)*valorTotal; document.getElementById('edit-app-cashbackAmount').value=saldo.toFixed(2); }
+    async function saveAppointmentChanges() { const id=document.getElementById('edit-app-id').value; const name=document.getElementById('edit-app-name').value; const date=document.getElementById('edit-app-date').value; const time=document.getElementById('edit-app-time').value; const type=document.getElementById('edit-app-type').value; const address=document.getElementById('edit-app-address').value; const neighborhood=document.getElementById('edit-app-neighborhood').value; const desc=document.getElementById('edit-app-desc').value; const valor=parseFloat(document.getElementById('edit-app-valor').value)||0; const cashbackPercent=parseFloat(document.getElementById('edit-app-cashbackPercent').value)||0; const cashbackAmount=(cashbackPercent/100)*valor; const updateData={name,date,time,type,address,neighborhood,desc,valor,cashbackPercent,cashbackAmount}; await db.collection('appointments').doc(id).update(updateData); const index=listAppointments.findIndex(a=>a.id===id); if(index!==-1) listAppointments[index]={...listAppointments[index],...updateData}; renderAppointmentsList(); renderFinanceiro(); closeEditModal(); alert("Salvo!"); }
+    function closeEditModal() { document.getElementById('edit-appointment-modal').style.display='none'; }
+    function toggleDeliveryFields() { document.getElementById('delivery-fields').style.display=document.getElementById('booking-type').value==='home'?'block':'none'; }
+    function maskPhone(input) { let v=input.value.replace(/\D/g,""); if(v.length>11) v=v.substring(0,11); if(v.length>6) input.value=`(${v.substring(0,2)}) ${v.substring(2,7)}-${v.substring(7,11)}`; else if(v.length>2) input.value=`(${v.substring(0,2)}) ${v.substring(2)}`; else input.value=v; }
+    function clearMakeFields(){ for(let i=1;i<=4;i++) document.getElementById(`input-img-make${i}`).value=''; document.getElementById('input-title-make1').value=''; document.getElementById('input-desc-make1').value=''; document.getElementById('input-price-make1').value=''; }
+    function clearHairFields(){ for(let i=1;i<=4;i++) document.getElementById(`input-img-hair${i}`).value=''; document.getElementById('input-title-hair1').value=''; document.getElementById('input-desc-hair1').value=''; document.getElementById('input-price-hair1').value=''; }
+    function abrirGaleria(tipo,numFoto){ const input=document.createElement('input'); input.type='file'; input.accept='image/*'; input.onchange=function(e){ const file=e.target.files[0]; if(file){ if(file.size>2*1024*1024){alert('⚠️ Máximo 2MB');return;} const reader=new FileReader(); reader.onload=function(event){ const dataURL=event.target.result; if(tipo==='make') document.getElementById(`input-img-make${numFoto}`).value=dataURL; else if(tipo==='hair') document.getElementById(`input-img-hair${numFoto}`).value=dataURL; else if(tipo==='company') document.getElementById('input-img-company').value=dataURL; }; reader.readAsDataURL(file); } }; input.click(); }
+    function updateLoginLogoutMenu() { const container=document.getElementById('dynamic-login-logout'); if(!container)return; if(currentUser) container.innerHTML=`<div class="panel-trigger-btn panel-access-btn" onclick="navigateToPanel()">👑 PAINEL</div><div class="panel-trigger-btn" onclick="logoutFirebase()">🚪 SAIR</div>`; else container.innerHTML=`<div class="panel-trigger-btn" id="login-trigger-btn" onclick="abrirModalLogin()">🔐 LOGIN</div>`; }
+    async function loginFirebase() { const email=document.getElementById('login-email').value.trim(); const password=document.getElementById('login-password').value.trim(); const errorDiv=document.getElementById('login-error-msg'); if(!email||!password){errorDiv.innerText='Preencha todos';return;} try{ await auth.signInWithEmailAndPassword(email,password); document.getElementById('login-modal').style.display='none'; document.getElementById('login-email').value=''; document.getElementById('login-password').value=''; errorDiv.innerText=''; toggleSettingsMenu(); navigateToPanel(); }catch(err){ errorDiv.innerText='Erro: '+err.message; } }
+    async function logoutFirebase() { await auth.signOut(); toggleSettingsMenu(); alert('Saiu do painel.'); if(document.getElementById('panel-screen').classList.contains('active')) navigateToMain(); }
+    function abrirModalLogin() { toggleSettingsMenu(); document.getElementById('login-modal').style.display='flex'; }
+    auth.onAuthStateChanged(async(user)=>{ currentUser=user; updateLoginLogoutMenu(); const panelUserSpan=document.getElementById('panel-user-email'); if(user){ if(panelUserSpan) panelUserSpan.innerText=user.email||'Logado'; await loadPrivateData(); if(document.getElementById('panel-screen').classList.contains('active')){ renderAppointmentsList(); renderFinanceiro(); } } else { if(panelUserSpan) panelUserSpan.innerText=''; listAppointments=[]; completedAppointments=[]; sangrias=[]; if(document.getElementById('appointments-list')) document.getElementById('appointments-list').innerHTML='<div>Faça login para ver os agendamentos.</div>'; if(document.getElementById('lista-sangrias')) document.getElementById('lista-sangrias').innerHTML=''; if(document.getElementById('completed-list-finance')) document.getElementById('completed-list-finance').innerHTML=''; if(document.getElementById('panel-screen').classList.contains('active')) navigateToMain(); } });
+    function toggleFixedButtonsVisibility(show){ const b=document.getElementById('fixed-booking-btn'); const r=document.getElementById('fixed-buttons-right'); if(show){ b.classList.remove('hidden-fixed'); r.classList.remove('hidden-fixed'); }else{ b.classList.add('hidden-fixed'); r.classList.add('hidden-fixed'); } }
+    function navigateToBooking(){ document.getElementById('main-screen').classList.remove('active'); document.getElementById('booking-screen').classList.add('active'); toggleFixedButtonsVisibility(false); }
+    function navigateToMainFromBooking(){ document.getElementById('booking-screen').classList.remove('active'); document.getElementById('main-screen').classList.add('active'); toggleFixedButtonsVisibility(true); }
+    function navigateToAboutMe(){ toggleSettingsMenu(); document.getElementById('main-screen').classList.remove('active'); document.getElementById('aboutme-screen').classList.add('active'); toggleFixedButtonsVisibility(false); }
+    function navigateToMainFromAbout(){ document.getElementById('aboutme-screen').classList.remove('active'); document.getElementById('main-screen').classList.add('active'); toggleFixedButtonsVisibility(true); }
+    function navigateToPanel(){ if(!currentUser){ alert('Faça login no menu Ajustes.'); toggleSettingsMenu(); return; } document.getElementById('main-screen').classList.remove('active'); document.getElementById('panel-screen').classList.add('active'); toggleFixedButtonsVisibility(false); renderAppointmentsList(); renderFinanceiro(); }
+    function navigateToMain(){ document.getElementById('panel-screen').classList.remove('active'); document.getElementById('main-screen').classList.add('active'); toggleFixedButtonsVisibility(true); }
+    function openTab(evt,tabName){ document.querySelectorAll('.catalog-section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.getElementById(tabName).classList.add('active'); evt.currentTarget.classList.add('active'); }
+    function switchPanelTab(evt,sectionId){ document.querySelectorAll('.panel-section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.panel-tab-btn').forEach(b=>b.classList.remove('active')); document.getElementById(sectionId).classList.add('active'); evt.currentTarget.classList.add('active'); if(sectionId==='panel-finance') renderFinanceiro(); }
+    function toggleSettingsMenu(){ document.getElementById('settings-drawer').classList.toggle('open'); const ov=document.getElementById('drawer-overlay'); ov.style.display=document.getElementById('settings-drawer').classList.contains('open')?'block':'none'; }
+    function dismissNotification(e){ e.stopPropagation(); document.getElementById('notification-bubble').classList.add('hidden-fixed'); }
+    window.onload=function(){ document.getElementById('drawer-overlay').addEventListener('click',()=>toggleSettingsMenu()); toggleFixedButtonsVisibility(true); if(document.getElementById('finance-month-filter')) document.getElementById('finance-month-filter').value=new Date().toISOString().slice(0,7); loadPublicData(); updateLoginLogoutMenu(); };
+</script>
+</body>
+</html>
